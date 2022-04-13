@@ -1,4 +1,4 @@
-Fiscal Year Released,Recidivism Reporting Year,Main Supervising District,Release Type,Race - Ethnicity,Age At Release ,Sex,Offense Classification,Offense Type,Offense Subtype,Return to Prison,Days to Return
+Fiscal Year Released,Recidivism Reporting Year,Main Supervising District,Release Type,Race - Ethnicity,Age At Release ,Sex,Offense Classification,Offense Type,Offense Subtype,Days to Return,Return to Prison
 2010.0,2013.0,7JD,Parole,Black - Non-Hispanic,25-34,Male,C Felony,Violent,Robbery,433.0,Yes
 2010.0,2013.0,NA,Discharged – End of Sentence,White - Non-Hispanic,25-34,Male,D Felony,Property,Theft,453.0,Yes
 2010.0,2013.0,5JD,Parole,White - Non-Hispanic,35-44,Male,B Felony,Drug,Trafficking,832.0,Yes

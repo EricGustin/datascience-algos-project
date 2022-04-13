@@ -141,8 +141,8 @@ class MyPyTable:
                     col_indices.append(self.column_names.index(col_identifier))
                 except ValueError as err:
                     raise ValueError from err
+        self.column_names[col_indices[0]], self.column_names[col_indices[1]] = self.column_names[col_indices[1]], self.column_names[col_indices[0]]
         for i in range(len(self.data)):
-            self.column_names[col_indices[0]], self.column_names[col_indices[1]] = self.column_names[col_indices[1]], self.column_names[col_indices[0]]
             self.data[i][col_indices[0]], self.data[i][col_indices[1]] = self.data[i][col_indices[1]], self.data[i][col_indices[0]]
 
     def load_from_file(self, filename):
