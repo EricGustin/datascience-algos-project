@@ -96,6 +96,55 @@ class MyPyTable:
             if 0 <= row < num_rows:
                 self.data.pop(row)
 
+    def drop_columns(self, col_identifiers):
+        """
+        Removes columns from the table data
+
+        Parameters:
+        -----------
+        col_identifiers: list(str or int)
+        """
+        col_indices = []
+        # allows for negative index values since using negative
+        # values to access an element in Python is valid
+        for col_identifier in col_identifiers:
+            if isinstance(col_identifier, int) and col_identifier < self.get_shape()[1]:
+                col_indices.append(col_identifier)
+            else:
+                try:
+                    col_indices.append(self.column_names.index(col_identifier))
+                except ValueError as err:
+                    raise ValueError from err
+        # remove rows from data
+        for i, row in enumerate(self.data):
+            self.data[i] = self.get_partial_row(row, col_indices)
+        # remove elements from header
+        self.column_names = self.get_partial_row(self.column_names, col_indices)
+
+    def swap_columns(self, col_identifier_1, col_identifier_2):
+        """
+        Swaps two columns in table data
+
+        Parameters:
+        -----------
+        col_identifier_1: str or int
+        col_identifier_2 str or int
+        """
+        col_indices = []
+        # allows for negative index values since using negative
+        # values to access an element in Python is valid
+        for col_identifier in (col_identifier_1, col_identifier_2):
+            if isinstance(col_identifier, int) and col_identifier < self.get_shape()[1]:
+                col_indices.append(col_identifier)
+            else:
+                try:
+                    col_indices.append(self.column_names.index(col_identifier))
+                except ValueError as err:
+                    raise ValueError from err
+        for i in range(len(self.data)):
+            self.column_names[col_indices[0]], self.column_names[col_indices[1]] = self.column_names[col_indices[1]], self.column_names[col_indices[0]]
+            self.data[i][col_indices[0]], self.data[i][col_indices[1]] = self.data[i][col_indices[1]], self.data[i][col_indices[0]]
+
     def load_from_file(self, filename):
         """Load column names and data from a CSV file.
         Args:
@@ -180,6 +229,21 @@ class MyPyTable:
         for i, value in enumerate(column):
             if value == "NA":
                 self.data[i][column_index] = column_average
+
+    def replace_missing_values_with_NA(self, col_name):
+        """
+        Wherever there is a missing value in the column, replace
+        it with the string "NA"
+
+        Parameters:
+        -----------
+        col_name(str): name of column to fill with the original average (of the column).
+        """
+        column = self.get_column(col_name)
+        column_index = self.column_names.index(col_name)
+        for i, value in enumerate(column):
+            if value == "":
+                self.data[i][column_index] = "NA"
 
     def compute_summary_statistics(self, col_names):
         """Calculates summary stats for this MyPyTable and stores the stats in a new MyPyTable.
