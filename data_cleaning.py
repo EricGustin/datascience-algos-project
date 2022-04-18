@@ -17,17 +17,6 @@ def clean_recidivism_data_NA():
 
     for column_name in table.column_names:
         table.replace_missing_values_with_NA(column_name)
-    
-    yes = 0
-    no = 0
-    for row in table.data:
-        if row[-1] == "Yes":
-            yes += 1
-        elif row[-1] == "No":
-            no += 1
-    print({yes / (yes + no) * 100})
-    print({no / (no + yes) * 100})
-
 
     write_filename = os.path.join("data", "cleaned-recidivism-data-NA.csv")
     table.save_to_file(write_filename)
