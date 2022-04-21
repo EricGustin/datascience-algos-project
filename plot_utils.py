@@ -40,7 +40,7 @@ def create_frequency_diagram(x_values, y_values, title, x_label, y_label):
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
-    plt.show()
+    plt.show()  
 
 def histogram_chart(vals, title, x_axis, y_axis, color):
     """Creates a simple Histogram
@@ -75,7 +75,7 @@ def pie_chart(vals, labels, title):
             graph visualization
 
         """
-    plt.figure(figsize=(10,5))
+    plt.figure(figsize=(10, 10))
     plt.title(title)
     plt.pie(vals, labels=labels, autopct="%1.1f%%", normalize=False)
     plt.show()
