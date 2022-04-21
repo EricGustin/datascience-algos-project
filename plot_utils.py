@@ -63,5 +63,22 @@ def histogram_chart(vals, title, x_axis, y_axis, color):
     plt.hist(vals, bins = 5, color = color)
     plt.show()
 
+def pie_chart(vals, labels, title):
+    """Creates a simple pie chart
+
+        Args:
+            vals: values in array form for creating pie chart
+            labels: to complement values
+            title: title for graph
+
+        Returns:
+            graph visualization
+
+        """
+    plt.figure(figsize=(10,5))
+    plt.title(title)
+    plt.pie(vals, labels=labels, autopct="%1.1f%%", normalize=False)
+    plt.show()
+
 
 
