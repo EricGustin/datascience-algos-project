@@ -77,7 +77,7 @@ def pie_chart(vals, labels, title):
         """
     plt.figure(figsize=(10, 10))
     plt.title(title)
-    plt.pie(vals, labels=labels, autopct="%1.1f%%", normalize=False)
+    plt.pie(vals, labels=labels, autopct="%1.1f%%", normalize=False, shadow=True)
     plt.show()
 
 
