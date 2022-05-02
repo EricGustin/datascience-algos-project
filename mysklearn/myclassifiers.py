@@ -150,4 +150,306 @@ class MyNaiveBayesClassifier:
                     )
         return posteriors
 
+class MyDecisionTreeClassifier:
+    """Represents a decision tree classifier.
+    Attributes:
+        X_train(list of list of obj): The list of training instances (samples).
+                The shape of X_train is (n_train_samples, n_features)
+        y_train(list of obj): The target y values (parallel to X_train).
+            The shape of y_train is n_samples
+        tree(nested list): The extracted tree model.
+    Notes:
+        Loosely based on sklearn's DecisionTreeClassifier:
+            https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
+        Terminology: instance = sample = row and attribute = feature = column
+    """
 
+    def __init__(self, header=None):
+        """Initializer for MyDecisionTreeClassifier.
+        """
+        self.X_train = None
+        self.y_train = None
+        self.tree = None
+        self._class_labels = None
+        self._header = header
+        self._attribute_domains = None
+
+    def _create_attribute_domains(self):
+        """
+        Sets the _attribute_domains dictionary.
+        The _attribute_domains instance variable
+        has the type dict(obj: set(obj)) and it
+        serves the purpose of mapping attribute
+        names to their domain i.e. to all possible
+        values of the attribute
+        """
+        self._attribute_domains = {
+            attribute_name: [] for attribute_name in self._header
+        }
+        for row in self.X_train:
+            for column_number, value in enumerate(row):
+                attribute = self._header[column_number]
+                if value not in self._attribute_domains[attribute]:
+                    self._attribute_domains[attribute].append(value)
+        # sort domains alphabetically for reproducibility
+        for attribute in self._attribute_domains.keys():
+            self._attribute_domains[attribute].sort()
+
+    def _select_attribute(self, attributes, instances):
+        """
+        Uses the entropy-based attribute selection method
+        to select an attribute i.e. selects the attribute
+        with the smallest E_new value
+        Parameters:
+        -----------
+        attributes: list(obj)
+        Returns:
+        --------
+        obj
+        """
+        new_entropies = []
+        for attribute in attributes:
+            attribute_entropies = []
+            attribute_domain = self._attribute_domains[attribute]
+            for value in attribute_domain:
+                proportions = utils.compute_proportions(
+                    attribute, value, instances, self._header, self._class_labels
+                )
+                entropy = utils.compute_entropy(proportions)
+                attribute_entropies.append(entropy)
+            likelihoods = utils.compute_likelihoods(
+                attribute, attribute_domain, instances, self._header
+            )
+            new_entropy = utils.compute_new_entropy(likelihoods, attribute_entropies)
+            new_entropies.append(new_entropy)
+        return attributes[new_entropies.index(min(new_entropies))]
+
+    def _partition_instances(self, instances, split_attribute):
+        """
+        Performs a group by on attribute domain
+        Parameters:
+        -----------
+        instances: list(list(obj))
+        split_attribute: obj
+        Returns:
+        --------
+        dict(obj: list(list(obj)))
+        """
+        # this is a group by attribute domain
+        partitions = dict()  # key (attribute value): value (subtable)
+        att_index = self._header.index(split_attribute)  # e.g. level -> 0
+        att_domain = self._attribute_domains[
+            split_attribute
+        ]  # e.g. ["Junior", "Mid", "Senior"]
+        for att_value in att_domain:
+            partitions[att_value] = []
+            for instance in instances:
+                if instance[att_index] == att_value:
+                    partitions[att_value].append(instance)
+        return partitions
+
+    def _tdidt(self, current_instances, available_attributes):
+        """
+        Run TDIDT algorithm to build up the decision tree
+        Parameters:
+        -----------
+        current instances: list(list(obj))
+        available_attributes: list(obj)
+        Returns:
+        --------
+        nested list
+        """
+        attribute = self._select_attribute(available_attributes, current_instances)
+        available_attributes.remove(attribute)
+        # start to build the tree
+        tree = ["Attribute", attribute]
+        # group data by attribute domains (pairwise disjoint partitions)
+        partitions = self._partition_instances(current_instances, attribute)
+
+        for attribute_value, attribute_partition in partitions.items():
+            # attribute_value e.g. Java, Python, R for the third attribute
+            # attribute_partition: all instances with the given attribute_value
+            value_subtree = ["Value", attribute_value]
+            # CASE 1: If all class labels of the partition
+            # are the same, then create lead node
+            if len(attribute_partition) > 0 and utils.all_same_class(
+                attribute_partition
+            ):
+                class_label = attribute_partition[0][-1]
+                leaf_node = [
+                    "Leaf",
+                    class_label,
+                    len(attribute_partition),
+                    len(current_instances),
+                ]
+                value_subtree.append(leaf_node)
+            # CASE 2: If there are no more attributes to select
+            # (clash), then handle the clash with majority vote
+            elif len(attribute_partition) > 0 and not available_attributes:
+                # We have a mix of class labels, handle clash with majority vote leaf node
+                class_label = utils.get_majority_label(attribute_partition)
+                leaf_node = [
+                    "Leaf",
+                    class_label,
+                    utils.get_class_label_occurrences(class_label, attribute_partition),
+                    len(current_instances),
+                ]
+                value_subtree.append(leaf_node)
+            # CASE 3: If there are no more instances to partition (empty partition),
+            # then backtrack and replace attribute node with majority vote leaf node
+            elif not attribute_partition:
+                # "backtrack" and replace this attribute node with a majority vote leaf node.
+                # we "change our mind" about the attribute being selected and return a leaf node instead
+                return [
+                    "Leaf",
+                    utils.get_majority_label(current_instances),
+                    len(current_instances),
+                    len(current_instances),
+                ]
+            else:
+                # append subtree to value_subtree and tree appropriately
+                subtree = self._tdidt(attribute_partition, available_attributes.copy())
+                value_subtree.append(subtree)
+            tree.append(value_subtree)
+        return tree
+
+    def fit(self, X_train, y_train):
+        """Fits a decision tree classifier to X_train and y_train using the TDIDT
+        (top down induction of decision tree) algorithm.
+        Args:
+            X_train(list of list of obj): The list of training instances (samples).
+                The shape of X_train is (n_train_samples, n_features)
+            y_train(list of obj): The target y values (parallel to X_train)
+                The shape of y_train is n_train_samples
+        Notes:
+            Since TDIDT is an eager learning algorithm, this method builds a decision tree model
+                from the training data.
+            Build a decision tree using the nested list representation described in class.
+            On a majority vote tie, choose first attribute value based on attribute domain ordering.
+            Store the tree in the tree attribute.
+            Use attribute indexes to construct default attribute names (e.g. "att0", "att1", ...).
+        """
+        self.X_train = X_train
+        self.y_train = y_train
+        self._class_labels = set(self.y_train)
+        train = [self.X_train[i] + [self.y_train[i]] for i in range(len(self.X_train))]
+        if not self._header:
+            self._header = [number for number in range(len(self.X_train[0]))]
+        self._create_attribute_domains()
+        self.tree = self._tdidt(train, copy.deepcopy(self._header))
+
+    def _dfs_predict(self, instance, tree):
+        """
+        Helper function for predict. Recursively
+        traverses through a tree until a class
+        label is found for a given instance.
+        Parameters:
+        -----------
+        instance: list(obj)
+        tree: nested list
+        Returns:
+        --------
+        (obj) the predicted class label for the given instance
+        """
+        if tree[0] == "Leaf":
+            return tree[1]
+        attribute = tree[1]
+        value = instance[self._header.index(attribute)]
+        for subtree in tree[2:]:
+            if subtree[1] == value:
+                return self._dfs_predict(instance, subtree[2])
+
+    def predict(self, X_test):
+        """Makes predictions for test instances in X_test.
+        Args:
+            X_test(list of list of obj): The list of testing samples
+                The shape of X_test is (n_test_samples, n_features)
+        Returns:
+            y_predicted(list of obj): The predicted target y values (parallel to X_test)
+        """
+        return [self._dfs_predict(test_instance, self.tree) for test_instance in X_test]
+
+    def _dfs_rules(self, attribute_names, class_name, tree, antecedent):
+        """
+        """
+        if tree[0] == "Leaf":
+            print(f"IF {' AND '.join(antecedent)} THEN {class_name} = {tree[1]}")
+            return
+        attribute_name = tree[1]
+        for subtree in tree[2:]:
+            attribute_value = subtree[1]
+            new_antecedent = antecedent[:] + [
+                str(attribute_name) + " == " + str(attribute_value)
+            ]
+            self._dfs_rules(attribute_names, class_name, subtree[2], new_antecedent)
+
+    def print_decision_rules(self, attribute_names=None, class_name="class"):
+        """Prints the decision rules from the tree in the format
+        "IF att == val AND ... THEN class = label", one rule on each line.
+        Args:
+            attribute_names(list of str or None): A list of attribute names to use in the decision rules
+                (None if a list is not provided and the default attribute names based on indexes
+                (e.g. "att0", "att1", ...) should be used).
+            class_name(str): A string to use for the class name in the decision rules
+                ("class" if a string is not provided and the default name "class" should be used).
+        """
+        self._dfs_rules(
+            attribute_names if attribute_names else self._header,
+            class_name,
+            self.tree,
+            [],
+        )
+
+
+class MyRandomForestClassifier:
+    """
+    Represents a Random Forest Classifier
+
+    Attributes:
+    -----------
+    weak_learners list(MyDecisionTreeClassifier): A list of
+        weak classifiers of length N, i.e. an ensemble
+    best_learners list(MyDecisionTreeClassifier): A list of
+        the top M best classifiers
+    num_attributes_to_select int: The number of attributes that each
+        decision tree will randomly select to be trained on
+
+    """
+    def __init__(self, N, M, F):
+        """
+        Initializer for MyRandomForestClassifier
+
+        Parameters:
+        -----------
+        N (int): the number of "weak" learners that work together
+        M (int): the number of "better" learners from the N "weak" learners. M < N
+        F (int): the number of randonly selected attributes that each decision tree will be trained on
+        """
+        self.weak_learners = [MyDecisionTreeClassifier()] * N
+        self.best_learners = []
+        self.num_attributes_to_select = F
+
+    def fit(self, X_train, y_train):
+        """
+        Builds a forest of trees from the training set
+
+        Parameters:
+        -----------
+        X_train: list(list(obj))
+        y_train: list(obj)
+        """
+        return
+
+    def predict(self, X_test):
+        """
+        Predict the class for each instance in the test data
+
+        Parameters:
+        -----------
+        X_test: list(list(obj))
+
+        Returns:
+        --------
+        list(obj)
+        """
+        return []
