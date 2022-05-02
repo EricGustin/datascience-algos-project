@@ -1,8 +1,12 @@
 import copy
 import math
+import random
+import time
 from collections import Counter
 from mysklearn import myutils as utils
+from mysklearn import myevaluation
 import numpy as np
+
 
 class MyNaiveBayesClassifier:
     """Represents a Naive Bayes classifier.
@@ -149,6 +153,7 @@ class MyNaiveBayesClassifier:
                         posterior_numerators[attribute][value][label] / denominator
                     )
         return posteriors
+
 
 class MyDecisionTreeClassifier:
     """Represents a decision tree classifier.
@@ -409,12 +414,16 @@ class MyRandomForestClassifier:
     -----------
     weak_learners list(MyDecisionTreeClassifier): A list of
         weak classifiers of length N, i.e. an ensemble
-    best_learners list(MyDecisionTreeClassifier): A list of
-        the top M best classifiers
+    best_learners list(MyDecisionTreeClassifier): A list of the top
+        M best classifiers. Parallel to self.best_learners_selected_attributes
+    best_learners_selected_attributes: The selected attributes for each
+        of the M best learners. Parallel to self.best_learners
     num_attributes_to_select int: The number of attributes that each
         decision tree will randomly select to be trained on
+    M int: The number of "better" learners that will be used for prediction
 
     """
+
     def __init__(self, N, M, F):
         """
         Initializer for MyRandomForestClassifier
@@ -427,9 +436,76 @@ class MyRandomForestClassifier:
         """
         self.weak_learners = [MyDecisionTreeClassifier()] * N
         self.best_learners = []
+        self.best_learners_selected_attributes = []
         self.num_attributes_to_select = F
+        self.M = M
+        self.estimated_ensemble_accuracy = 0.0
 
-    def fit(self, X_train, y_train):
+    def _compute_estimated_ensemble_accuracy(self, X_test, y_test):
+        """
+        Uses the ensemble to classify each of the instances in the test set selected
+        and uses the result as an estimate of the performance of the ensemble
+        on (genuinely) unseen data. Sets the estimated_ensemble_accuracy instance
+        attribute with the result.
+
+        Parameters:
+        -----------
+        X_test: list(list(obj))
+        y_test: list(obj)
+        """
+        for learner, selected_attributes in zip(
+            self.best_learners, self.best_learners_selected_attributes
+        ):
+            X_test_selected_attributes = [
+                [value for i, value in enumerate(instance) if i in selected_attributes] for instance in X_test
+            ]
+            y_predicted = learner.predict(X_test_selected_attributes)
+            self.estimated_ensemble_accuracy += myevaluation.accuracy_score(
+                y_test, y_predicted
+            )
+        self.estimated_ensemble_accuracy /= self.M
+
+    def _select_attributes(self, num_attributes):
+        """
+        When building the decision trees, we randomly select "F" attributes
+        as candidates to partition on. This method randomly selects those
+        attributes for a decision tree.
+
+        Parameters:
+        -----------
+        num_attributes: int
+
+        Returns:
+        --------
+        list(int)
+        """
+        selected_attributes = []
+        while len(selected_attributes) < self.num_attributes_to_select:
+            attribute = np.random.randint(0, num_attributes)
+            if attribute not in selected_attributes:
+                selected_attributes.append(attribute)
+        return selected_attributes
+
+    def _select_best_learners(self, learners_information):
+        """
+        Selects the M most accurate of the N decision trees using the
+        corresponding validation sets. The learners_information
+        is a list of triple tuples in the form of
+        (index of the learner in self.weak_learners, the learner's accuracy, the learner's selected attributes)
+
+        Parameters:
+        -----------
+        learners_information: tuple(int, float, list(int))
+        """
+        learners_information.sort(key=lambda x: x[1], reverse=True)
+        self.best_learners = [
+            self.weak_learners[learner_index] for learner_index, _, _ in learners_information[: self.M]
+        ]
+        self.best_learners_selected_attributes = [
+            selected_attributes for _, _, selected_attributes in learners_information[: self.M]
+        ]
+
+    def fit(self, X, y):
         """
         Builds a forest of trees from the training set
 
@@ -438,7 +514,42 @@ class MyRandomForestClassifier:
         X_train: list(list(obj))
         y_train: list(obj)
         """
-        return
+        np.random.seed(0)
+        # divide the available data into a test set and the remainder set. The test set
+        # is 1/3 of available data and the remainder set is 2/3 of the available data
+        X_remainder, X_test, y_remainder, y_test = utils.kfold_test_train_split(
+            X, y, n_splits=3, random_state=0, shuffle=True, stratified=True
+        )
+        # weak_learner_accuracies is a list of triple tuples where each tuple is in the form
+        # (index of the learner in self.weak_learners, the learner's accuracy, the learner's selected attributes)
+        weak_learners_information = []
+        for learner_index, learner in enumerate(self.weak_learners):
+            # divide the remainder set into training and validation data using bootstrapping
+            X_train, X_validation, y_train, y_validation = myevaluation.bootstrap_sample(
+                X_remainder, y_remainder, random_state=np.random.randint(0, 2 ** 32 - 1)
+            )
+            # randomly select 'F' attributes as candidates to partition on
+            selected_attributes = self._select_attributes(len(X_train[0]))
+            X_train = [
+                [value for i, value in enumerate(instance) if i in selected_attributes] for instance in X_train
+            ]
+            X_validation = [
+                [value for i, value in enumerate(instance) if i in selected_attributes] for instance in X_validation
+            ]
+            # fit the decision tree and record its accuracy against the validation data
+            learner.fit(X_train, y_train)
+            y_predicted = learner.predict(X_validation)
+            weak_learners_information.append(
+                (
+                    learner_index,
+                    myevaluation.accuracy_score(y_validation, y_predicted),
+                    selected_attributes,
+                )
+            )
+        # select the M most accurate of the N decision trees
+        self._select_best_learners(weak_learners_information)
+        # estimate the performance of the ensemble on (genuinely) unseen data
+        self._compute_estimated_ensemble_accuracy(X_test, y_test)
 
     def predict(self, X_test):
         """
@@ -452,4 +563,10 @@ class MyRandomForestClassifier:
         --------
         list(obj)
         """
-        return []
+        y_predicted = []
+        for test_instance in X_test:
+            class_predictions = []
+            for learner in self.best_learners:
+                class_predictions.append(learner.predict([test_instance])[0])
+            y_predicted.append(utils.get_mode(class_predictions))
+        return y_predicted

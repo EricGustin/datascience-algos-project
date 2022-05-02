@@ -605,9 +605,9 @@ def test_random_forest_classifier_fit():
     pass
 
 def test_random_forest_classifier_predict():
-    N = 20
-    M = 7
-    F = 2
+    N = 100
+    M = 10
+    F = 4
     random_forest_classifier = MyRandomForestClassifier(N, M, F)
     random_forest_classifier.fit(interview_X_train, interview_y_train)
     y_actual = random_forest_classifier.predict(interview_X_test)

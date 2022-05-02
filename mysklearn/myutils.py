@@ -413,3 +413,18 @@ def compute_proportions(attribute, value, instances, header, class_labels):
         return [0.0] * len(class_labels)
     proportions = [num / denominator for num in proportions]
     return proportions
+
+def get_mode(lst):
+    """
+    Given a list, returns the element that occurs the
+    most often
+
+    Parameters:
+    -----------
+    lst: list(obj)
+
+    Returns:
+    --------
+    obj
+    """
+    return Counter(lst).most_common(1)[0][0]
