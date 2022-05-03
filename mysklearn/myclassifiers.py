@@ -434,7 +434,8 @@ class MyRandomForestClassifier:
         M (int): the number of "better" learners from the N "weak" learners. M < N
         F (int): the number of randonly selected attributes that each decision tree will be trained on
         """
-        self.weak_learners = [MyDecisionTreeClassifier()] * N
+        self.weak_learners = []
+        self.N = N
         self.best_learners = []
         self.best_learners_selected_attributes = []
         self.num_attributes_to_select = F
@@ -457,7 +458,7 @@ class MyRandomForestClassifier:
             self.best_learners, self.best_learners_selected_attributes
         ):
             X_test_selected_attributes = [
-                [value for i, value in enumerate(instance) if i in selected_attributes] for instance in X_test
+                [instance[index] for index in selected_attributes] for instance in X_test
             ]
             y_predicted = learner.predict(X_test_selected_attributes)
             self.estimated_ensemble_accuracy += myevaluation.accuracy_score(
@@ -514,7 +515,6 @@ class MyRandomForestClassifier:
         X_train: list(list(obj))
         y_train: list(obj)
         """
-        np.random.seed(0)
         # divide the available data into a test set and the remainder set. The test set
         # is 1/3 of available data and the remainder set is 2/3 of the available data
         X_remainder, X_test, y_remainder, y_test = utils.kfold_test_train_split(
@@ -523,7 +523,7 @@ class MyRandomForestClassifier:
         # weak_learner_accuracies is a list of triple tuples where each tuple is in the form
         # (index of the learner in self.weak_learners, the learner's accuracy, the learner's selected attributes)
         weak_learners_information = []
-        for learner_index, learner in enumerate(self.weak_learners):
+        for learner_index in range(self.N):
             # divide the remainder set into training and validation data using bootstrapping
             X_train, X_validation, y_train, y_validation = myevaluation.bootstrap_sample(
                 X_remainder, y_remainder, random_state=np.random.randint(0, 2 ** 32 - 1)
@@ -531,14 +531,15 @@ class MyRandomForestClassifier:
             # randomly select 'F' attributes as candidates to partition on
             selected_attributes = self._select_attributes(len(X_train[0]))
             X_train = [
-                [value for i, value in enumerate(instance) if i in selected_attributes] for instance in X_train
+                [instance[index] for index in selected_attributes] for instance in X_train
             ]
             X_validation = [
-                [value for i, value in enumerate(instance) if i in selected_attributes] for instance in X_validation
+                [instance[index] for index in selected_attributes] for instance in X_validation
             ]
             # fit the decision tree and record its accuracy against the validation data
-            learner.fit(X_train, y_train)
-            y_predicted = learner.predict(X_validation)
+            self.weak_learners.append(MyDecisionTreeClassifier(header=selected_attributes))
+            self.weak_learners[learner_index].fit(X_train, y_train)
+            y_predicted = self.weak_learners[learner_index].predict(X_validation)
             weak_learners_information.append(
                 (
                     learner_index,
@@ -566,7 +567,9 @@ class MyRandomForestClassifier:
         y_predicted = []
         for test_instance in X_test:
             class_predictions = []
-            for learner in self.best_learners:
-                class_predictions.append(learner.predict([test_instance])[0])
+            for learner_index, learner in enumerate(self.best_learners):
+                only_selected_attributes_instance = [test_instance[i] for i in self.best_learners_selected_attributes[learner_index]]
+                prediction = learner.predict([only_selected_attributes_instance])[0]
+                class_predictions.append(prediction)
             y_predicted.append(utils.get_mode(class_predictions))
         return y_predicted
