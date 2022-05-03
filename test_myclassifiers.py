@@ -601,76 +601,236 @@ y_test_3 = ["yes", "yes"]
 Tests for Random Forest Classifier
 **********************************
 """
-fit_tree_1 = ['Attribute', 2,
-                ['Value', 'no',
-                    ['Attribute', 0,
-                        ['Value', 'Junior',
-                            ['Attribute', 3,
-                                ['Value', 'no',
-                                    ['Leaf', 'True', 1, 3]
-                                ],
-                                ['Value', 'yes',
-                                    ['Leaf', 'False', 2, 3]
-                                ]
-                            ]
-                        ],
-                        ['Value', 'Mid',
-                            ['Leaf', 'True', 2, 12]
-                        ],
-                        ['Value', 'Senior',
-                            ['Leaf', 'False', 7, 12]
-                        ]
-                    ]
-                ],
-                ['Value', 'yes',
-                    ['Attribute', 3,
-                        ['Value', 'no',
-                            ['Leaf', 'True', 10, 16]
-                        ],
-                        ['Value', 'yes',
-                            ['Leaf', 'True', 6, 6]
-                        ]
-                    ]
-                ]
-            ]
-fit_tree_2 = ['Attribute', 0,
+expected_trees_1 = [
+    ['Attribute', 2,
+        ['Value', 'no',
+            ['Attribute', 0,
                 ['Value', 'Junior',
                     ['Attribute', 3,
                         ['Value', 'no',
-                            ['Leaf', 'True', 3, 7]
+                            ['Leaf', 'True', 1, 3]
                         ],
                         ['Value', 'yes',
-                            ['Leaf', 'False', 4, 7]
+                            ['Leaf', 'False', 2, 3]
                         ]
                     ]
                 ],
                 ['Value', 'Mid',
-                    ['Leaf', 'True', 12, 28]
+                    ['Leaf', 'True', 2, 12]
                 ],
                 ['Value', 'Senior',
-                    ['Attribute', 1,
-                        ['Value', 'Java',
-                            ['Leaf', 'False', 5, 9]
+                    ['Leaf', 'False', 7, 12]
+                ]
+            ]
+        ],
+        ['Value', 'yes',
+            ['Attribute', 3,
+                ['Value', 'no',
+                    ['Leaf', 'True', 10, 16]
+                ],
+                ['Value', 'yes',
+                    ['Leaf', 'True', 6, 6]
+                ]
+            ]
+        ]
+    ],
+    ['Attribute', 0,
+        ['Value', 'Junior',
+            ['Attribute', 3,
+                ['Value', 'no',
+                    ['Leaf', 'True', 3, 7]
+                ],
+                ['Value', 'yes',
+                    ['Leaf', 'False', 4, 7]
+                ]
+            ]
+        ],
+        ['Value', 'Mid',
+            ['Leaf', 'True', 12, 28]
+        ],
+        ['Value', 'Senior',
+            ['Attribute', 1,
+                ['Value', 'Java',
+                    ['Leaf', 'False', 5, 9]
+                ],
+                ['Value', 'Python',
+                    ['Attribute', 3,
+                        ['Value', 'no',
+                            ['Leaf', 'False', 1, 3]
                         ],
-                        ['Value', 'Python',
-                            ['Attribute', 3,
-                                ['Value', 'no',
-                                    ['Leaf', 'False', 1, 3]
+                        ['Value', 'yes',
+                            ['Leaf', 'True', 2, 3]
+                        ]
+                    ]
+                ],
+                ['Value', 'R',
+                    ['Leaf', 'True', 1, 9]
+                ]
+            ]
+        ]
+    ]
+]
+
+best_decision_trees_selected_attributes_1 = [[0, 2, 3], [1, 0, 3]]
+
+expected_trees_2 = [
+    ['Attribute', 4,
+        ['Value', 'A',
+            ['Attribute', 0,
+                ['Value', 'A',
+                    ['Leaf', 'FIRST', 10, 15]
+                ],
+                ['Value', 'B',
+                    ['Leaf', 'SECOND', 5, 15]
+                ]
+            ]
+        ],
+        ['Value', 'B',
+            ['Attribute', 3,
+                ['Value', 'A',
+                    ['Attribute', 0,
+                        ['Value', 'A',
+                            ['Leaf', 'FIRST', 4, 4]
+                        ],
+                        ['Value', 'B',
+                            ['Leaf', 'SECOND', 4, 8]
+                        ]
+                    ]
+                ],
+                ['Value', 'B',
+                    ['Leaf', 'SECOND', 29, 37]
+                ]
+            ]
+        ]
+    ],
+    ['Attribute', 4,
+        ['Value', 'A',
+            ['Attribute', 0,
+                ['Value', 'A',
+                    ['Leaf', 'FIRST', 11, 20]
+                ],
+                ['Value', 'B',
+                    ['Leaf', 'SECOND', 9, 20]
+                ]
+            ]
+        ],
+        ['Value', 'B',
+            ['Attribute', 2,
+                ['Value', 'A',
+                    ['Leaf', 'SECOND', 17, 32]
+                ],
+                ['Value', 'B',
+                    ['Attribute', 1,
+                        ['Value', 'A',
+                            ['Attribute', 0,
+                                ['Value', 'A',
+                                    ['Leaf', 'FIRST', 2, 5]
                                 ],
-                                ['Value', 'yes',
-                                    ['Leaf', 'True', 2, 3]
+                                ['Value', 'B',
+                                    ['Leaf', 'SECOND', 1, 5]
                                 ]
                             ]
                         ],
-                        ['Value', 'R',
-                            ['Leaf', 'True', 1, 9]
+                        ['Value', 'B',
+                            ['Leaf', 'SECOND', 10, 15]
                         ]
                     ]
                 ]
             ]
-expected_trees = [fit_tree_1, fit_tree_2]
-best_decision_trees_selected_attributes = [[0, 2, 3], [1, 0, 3]]
-def test_random_forest_classifier_fit():
+        ]
+    ]
+]
+
+best_decision_trees_selected_attributes_2 = [[3, 4, 0, 2], [2, 4, 0, 1]]
+
+expected_trees_3 = [
+    ['Attribute', 2,
+        ['Value', 'excellent',
+            ['Attribute', 0,
+                ['Value', 1,
+                    ['Leaf', 'yes', 5, 17]
+                ],
+                ['Value', 2,
+                    ['Leaf', 'no', 5, 17]
+                ]
+            ]
+        ],
+        ['Value', 'fair',
+            ['Attribute', 0,
+                ['Value', 1,
+                    ['Leaf', 'no', 2, 13]
+                ],
+                ['Value', 2,
+                    ['Leaf', 'yes', 10, 13]
+                ]
+            ]
+        ]
+    ],
+    ['Attribute', 1,
+        ['Value', 1,
+            ['Attribute', 0,
+                ['Value', 1,
+                    ['Leaf', 'yes', 4, 9]
+                ],
+                ['Value', 2,
+                    ['Leaf', 'yes', 4, 9]
+                ]
+            ]
+        ],
+        ['Value', 2,
+            ['Attribute', 0,
+                ['Value', 1,
+                    ['Leaf', 'no', 2, 11]
+                ],
+                ['Value', 2,
+                    ['Leaf', 'yes', 5, 11]
+                ]
+            ]
+        ],
+        ['Value', 3,
+            ['Attribute', 0,
+                ['Value', 1,
+                    ['Leaf', 'no', 5, 10]
+                ],
+                ['Value', 2,
+                    ['Leaf', 'yes', 5, 10]
+                ]
+            ]
+        ]
+    ],
+    ['Attribute', 2,
+        ['Value', 'excellent',
+            ['Attribute', 1,
+                ['Value', 1,
+                    ['Leaf', 'no', 4, 11]
+                ],
+                ['Value', 2,
+                    ['Leaf', 'yes', 4, 11]
+                ],
+                ['Value', 3,
+                    ['Leaf', 'no', 1, 11]
+                ]
+            ]
+        ],
+        ['Value', 'fair',
+            ['Attribute', 1,
+                ['Value', 1,
+                    ['Leaf', 'yes', 5, 19]
+                ],
+                ['Value', 2,
+                    ['Leaf', 'yes', 3, 19]
+                ],
+                ['Value', 3,
+                    ['Leaf', 'yes', 7, 19]
+                ]
+            ]
+        ]
+    ],
+]
+
+best_decision_trees_selected_attributes_3 = [[0, 2], [0, 1], [1, 2]]
+
+def test_random_forest_classifier_fit_1():
     np.random.seed(0)
     N = 5
     M = 2
@@ -678,14 +838,41 @@ def test_random_forest_classifier_fit():
     random_forest_classifier = MyRandomForestClassifier(N, M, F)
     random_forest_classifier.fit(interview_X_train, interview_y_train)
     for i, selected_attributes in enumerate(random_forest_classifier.best_learners_selected_attributes):
-        assert selected_attributes == best_decision_trees_selected_attributes[i]
-    for learner, expected_header in zip(random_forest_classifier.best_learners, best_decision_trees_selected_attributes):
+        assert selected_attributes == best_decision_trees_selected_attributes_1[i]
+    for learner, expected_header in zip(random_forest_classifier.best_learners, best_decision_trees_selected_attributes_1):
         assert learner._header == expected_header
-    for learner, expected_tree in zip(random_forest_classifier.best_learners, expected_trees):
+    for learner, expected_tree in zip(random_forest_classifier.best_learners, expected_trees_1):
         assert learner.tree == expected_tree
 
+def test_random_forest_classifier_fit_2():
+    np.random.seed(0)
+    N = 6
+    M = 2
+    F = 4
+    random_forest_classifier = MyRandomForestClassifier(N, M, F)
+    random_forest_classifier.fit(X_train_2, y_train_2)
+    for i, selected_attributes in enumerate(random_forest_classifier.best_learners_selected_attributes):
+        assert selected_attributes == best_decision_trees_selected_attributes_2[i]
+    for learner, expected_header in zip(random_forest_classifier.best_learners, best_decision_trees_selected_attributes_2):
+        assert learner._header == expected_header
+    for learner, expected_tree in zip(random_forest_classifier.best_learners, expected_trees_2):
+        assert learner.tree == expected_tree
 
-def test_random_forest_classifier_predict():
+def test_random_forest_classifier_fit_3():
+    np.random.seed(0)
+    N = 10
+    M = 3
+    F = 2
+    random_forest_classifier = MyRandomForestClassifier(N, M, F)
+    random_forest_classifier.fit(X_train_3, y_train_3)
+    for i, selected_attributes in enumerate(random_forest_classifier.best_learners_selected_attributes):
+        assert selected_attributes == best_decision_trees_selected_attributes_3[i]
+    for learner, expected_header in zip(random_forest_classifier.best_learners, best_decision_trees_selected_attributes_3):
+        assert learner._header == expected_header
+    for learner, expected_tree in zip(random_forest_classifier.best_learners, expected_trees_3):
+        assert learner.tree == expected_tree
+
+def test_random_forest_classifier_predict_1():
     np.random.seed(0)
     N = 5
     M = 2
@@ -694,3 +881,23 @@ def test_random_forest_classifier_predict():
     random_forest_classifier.fit(interview_X_train, interview_y_train)
     y_predicted = random_forest_classifier.predict(interview_X_test)
     assert y_predicted == ["True", "True"]
+
+def test_random_forest_classifier_predict_2():
+    np.random.seed(0)
+    N = 6
+    M = 2
+    F = 4
+    random_forest_classifier = MyRandomForestClassifier(N, M, F)
+    random_forest_classifier.fit(X_train_2, y_train_2)
+    y_predicted = random_forest_classifier.predict(X_test_2)
+    assert y_predicted == ["SECOND", "FIRST", "FIRST"]
+
+def test_random_forest_classifier_predict_3():
+    np.random.seed(0)
+    N = 10
+    M = 3
+    F = 2
+    random_forest_classifier = MyRandomForestClassifier(N, M, F)
+    random_forest_classifier.fit(X_train_3, y_train_3)
+    y_predicted = random_forest_classifier.predict(X_test_3)
+    assert y_predicted == ["yes", "yes"]
