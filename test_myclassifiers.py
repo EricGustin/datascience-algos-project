@@ -546,63 +546,151 @@ X_test_3 = [
 y_test_3 = ["yes", "yes"]
 
 
-def test_decision_tree_classifier_fit_1():
-    """Uses interview dataset from class"""
-    decision_tree_classifier = MyDecisionTreeClassifier(interview_header)
-    decision_tree_classifier.fit(interview_X_train, interview_y_train)
-    assert decision_tree_classifier.X_train == interview_X_train
-    assert decision_tree_classifier.y_train == interview_y_train
-    assert decision_tree_classifier.tree == interview_expected_tree
-test_decision_tree_classifier_fit_1()
+# def test_decision_tree_classifier_fit_1():
+#     """Uses interview dataset from class"""
+#     decision_tree_classifier = MyDecisionTreeClassifier(interview_header)
+#     decision_tree_classifier.fit(interview_X_train, interview_y_train)
+#     assert decision_tree_classifier.X_train == interview_X_train
+#     assert decision_tree_classifier.y_train == interview_y_train
+#     assert decision_tree_classifier.tree == interview_expected_tree
+# test_decision_tree_classifier_fit_1()
 
-def test_decision_tree_classifier_fit_2():
-    """Uses dataset from Bramer 4.1 Figure 4.3"""
-    decision_tree_classifier = MyDecisionTreeClassifier(header_2)
-    decision_tree_classifier.fit(X_train_2, y_train_2)
-    assert decision_tree_classifier.X_train == X_train_2
-    assert decision_tree_classifier.y_train == y_train_2
-    assert decision_tree_classifier.tree == expected_tree_2
-
-
-def test_decision_tree_classifier_fit_3():
-    """Uses dataset from RQ5"""
-    decision_tree_classifier = MyDecisionTreeClassifier(header_3)
-    decision_tree_classifier.fit(X_train_3, y_train_3)
-    assert decision_tree_classifier.X_train == X_train_3
-    assert decision_tree_classifier.y_train == y_train_3
-    assert decision_tree_classifier.tree == expected_tree_3
+# def test_decision_tree_classifier_fit_2():
+#     """Uses dataset from Bramer 4.1 Figure 4.3"""
+#     decision_tree_classifier = MyDecisionTreeClassifier(header_2)
+#     decision_tree_classifier.fit(X_train_2, y_train_2)
+#     assert decision_tree_classifier.X_train == X_train_2
+#     assert decision_tree_classifier.y_train == y_train_2
+#     assert decision_tree_classifier.tree == expected_tree_2
 
 
-def test_decision_tree_classifier_predict_1():
-    """Uses interview dataset from class"""
-    decision_tree_classifier = MyDecisionTreeClassifier(interview_header)
-    decision_tree_classifier.fit(interview_X_train, interview_y_train)
-    y_actual = decision_tree_classifier.predict(interview_X_test)
-    assert y_actual == interview_y_test
+# def test_decision_tree_classifier_fit_3():
+#     """Uses dataset from RQ5"""
+#     decision_tree_classifier = MyDecisionTreeClassifier(header_3)
+#     decision_tree_classifier.fit(X_train_3, y_train_3)
+#     assert decision_tree_classifier.X_train == X_train_3
+#     assert decision_tree_classifier.y_train == y_train_3
+#     assert decision_tree_classifier.tree == expected_tree_3
 
 
-def test_decision_tree_classifier_predict_2():
-    """Uses dataset from Bramer 4.1 Figure 4.3"""
-    decision_tree_classifier = MyDecisionTreeClassifier(header_2)
-    decision_tree_classifier.fit(X_train_2, y_train_2)
-    y_actual = decision_tree_classifier.predict(X_test_2)
-    assert y_actual == y_test_2
+# def test_decision_tree_classifier_predict_1():
+#     """Uses interview dataset from class"""
+#     decision_tree_classifier = MyDecisionTreeClassifier(interview_header)
+#     decision_tree_classifier.fit(interview_X_train, interview_y_train)
+#     y_actual = decision_tree_classifier.predict(interview_X_test)
+#     assert y_actual == interview_y_test
 
 
-def test_decision_tree_classifier_predict_3():
-    """Uses dataset from RQ5"""
-    decision_tree_classifier = MyDecisionTreeClassifier(header_3)
-    decision_tree_classifier.fit(X_train_3, y_train_3)
-    y_actual = decision_tree_classifier.predict(X_test_3)
-    assert y_actual == y_test_3
+# def test_decision_tree_classifier_predict_2():
+#     """Uses dataset from Bramer 4.1 Figure 4.3"""
+#     decision_tree_classifier = MyDecisionTreeClassifier(header_2)
+#     decision_tree_classifier.fit(X_train_2, y_train_2)
+#     y_actual = decision_tree_classifier.predict(X_test_2)
+#     assert y_actual == y_test_2
+
+
+# def test_decision_tree_classifier_predict_3():
+#     """Uses dataset from RQ5"""
+#     decision_tree_classifier = MyDecisionTreeClassifier(header_3)
+#     decision_tree_classifier.fit(X_train_3, y_train_3)
+#     y_actual = decision_tree_classifier.predict(X_test_3)
+#     assert y_actual == y_test_3
 
 """
 **********************************
 Tests for Random Forest Classifier
 **********************************
 """
+fit_tree_1 = ['Attribute', 2,
+                ['Value', 'no',
+                    ['Attribute', 0,
+                        ['Value', 'Junior',
+                            ['Attribute', 3,
+                                ['Value', 'no',
+                                    ['Leaf', 'True', 1, 3]
+                                ],
+                                ['Value', 'yes',
+                                    ['Leaf', 'False', 2, 3]
+                                ]
+                            ]
+                        ],
+                        ['Value', 'Mid',
+                            ['Leaf', 'True', 2, 12]
+                        ],
+                        ['Value', 'Senior',
+                            ['Leaf', 'False', 7, 12]
+                        ]
+                    ]
+                ],
+                ['Value', 'yes',
+                    ['Attribute', 3,
+                        ['Value', 'no',
+                            ['Leaf', 'True', 10, 16]
+                        ],
+                        ['Value', 'yes',
+                            ['Leaf', 'True', 6, 6]
+                        ]
+                    ]
+                ]
+            ]
+fit_tree_2 = ['Attribute', 0,
+                ['Value', 'Junior',
+                    ['Attribute', 3,
+                        ['Value', 'no',
+                            ['Leaf', 'True', 3, 7]
+                        ],
+                        ['Value', 'yes',
+                            ['Leaf', 'False', 4, 7]
+                        ]
+                    ]
+                ],
+                ['Value', 'Mid',
+                    ['Leaf', 'True', 12, 28]
+                ],
+                ['Value', 'Senior',
+                    ['Attribute', 1,
+                        ['Value', 'Java',
+                            ['Leaf', 'False', 5, 9]
+                        ],
+                        ['Value', 'Python',
+                            ['Attribute', 3,
+                                ['Value', 'no',
+                                    ['Leaf', 'False', 1, 3]
+                                ],
+                                ['Value', 'yes',
+                                    ['Leaf', 'True', 2, 3]
+                                ]
+                            ]
+                        ],
+                        ['Value', 'R',
+                            ['Leaf', 'True', 1, 9]
+                        ]
+                    ]
+                ]
+            ]
+expected_trees = [fit_tree_1, fit_tree_2]
+best_decision_trees_selected_attributes = [[0, 2, 3], [1, 0, 3]]
 def test_random_forest_classifier_fit():
-    pass
+    np.random.seed(0)
+    N = 5
+    M = 2
+    F = 3
+    random_forest_classifier = MyRandomForestClassifier(N, M, F)
+    random_forest_classifier.fit(interview_X_train, interview_y_train)
+    for i, selected_attributes in enumerate(random_forest_classifier.best_learners_selected_attributes):
+        assert selected_attributes == best_decision_trees_selected_attributes[i]
+    for learner, expected_header in zip(random_forest_classifier.best_learners, best_decision_trees_selected_attributes):
+        assert learner._header == expected_header
+    for learner, expected_tree in zip(random_forest_classifier.best_learners, expected_trees):
+        assert learner.tree == expected_tree
+
 
 def test_random_forest_classifier_predict():
-   pass
+    np.random.seed(0)
+    N = 5
+    M = 2
+    F = 3
+    random_forest_classifier = MyRandomForestClassifier(N, M, F)
+    random_forest_classifier.fit(interview_X_train, interview_y_train)
+    y_predicted = random_forest_classifier.predict(interview_X_test)
+    assert y_predicted == ["True", "True"]
