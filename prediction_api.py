@@ -19,8 +19,12 @@ def index():
 def predict():
     random_forest_classifier = joblib.load('trained_random_forest.pkl')
     prisoner_data = []
-    for key in request.args:
-        prisoner_data.append(request.args[key])
+    temp_data = []
+
+    for key, value in request.args.items():
+        temp_data.append(value)
+    prisoner_data.append(value)
+
     prediction = random_forest_classifier.predict(prisoner_data)
     if prediction is not None:
         return jsonify({"prediction": prediction.tolist()}), 200
@@ -31,6 +35,6 @@ def predict():
 # may have to adjust this depending on docker port
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5001))
     app.run(host='0.0.0.0', port=port)
     app.run(debug=True)
