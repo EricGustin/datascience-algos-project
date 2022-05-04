@@ -1,12 +1,10 @@
 import os
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 from mysklearn.myclassifiers import MyRandomForestClassifier
 import joblib
 
 # Working with the flask app and the API
 app = Flask(__name__)
-CORS(app)
 
 
 
@@ -23,11 +21,12 @@ def predict():
 
     for key, value in request.args.items():
         temp_data.append(value)
-    prisoner_data.append(value)
+    prisoner_data.append(temp_data)
+    print(prisoner_data)
 
     prediction = random_forest_classifier.predict(prisoner_data)
     if prediction is not None:
-        return jsonify({"prediction": prediction.tolist()}), 200
+        return jsonify({"prediction": prediction}), 200
     else:
         return "Error making prediction", 400
     
