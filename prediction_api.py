@@ -2,6 +2,7 @@ import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from mysklearn.myclassifiers import MyRandomForestClassifier
+import joblib
 
 # Working with the flask app and the API
 app = Flask(__name__)
@@ -16,6 +17,7 @@ def index():
 # This route is for the random song generating API
 @app.route("/predictor", methods = ["GET"])
 def predict():
+    random_forest_classifier = joblib.load('trained_random_forest.pkl')
     prisoner_data = []
     for key in request.args:
         prisoner_data.append(request.args[key])
